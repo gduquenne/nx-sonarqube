@@ -1,7 +1,6 @@
 import {
   formatFiles,
   NxJsonConfiguration,
-  readNxJson,
   readProjectConfiguration,
   Tree,
   updateJson,
@@ -11,7 +10,7 @@ import { NxSonarqubeGeneratorSchema } from './schema';
 
 export default async function (
   tree: Tree,
-  options: NxSonarqubeGeneratorSchema
+  options: NxSonarqubeGeneratorSchema,
 ) {
   updateGitIgnore(tree);
   if (!options.skipTargetDefaults) {
@@ -35,13 +34,13 @@ function updateGitIgnore(tree: Tree): void {
 
 function updateTargetDefaults(tree: Tree): void {
   updateJson<NxJsonConfiguration>(tree, 'nx.json', (json) => {
-    const nxJsonConfiguration = readNxJson(tree);
-    if (!nxJsonConfiguration.targetDefaults.sonar) {
+    json.targetDefaults ??= {};
+    if (!json.targetDefaults.sonar) {
       json.targetDefaults.sonar = {
         dependsOn: ['^test', 'test'],
       };
     }
-    if (!nxJsonConfiguration.targetDefaults.test) {
+    if (!json.targetDefaults.test) {
       json.targetDefaults.test = {
         dependsOn: ['^test'],
       };
@@ -52,13 +51,13 @@ function updateTargetDefaults(tree: Tree): void {
 
 function updateProjectConfig(
   tree: Tree,
-  options: NxSonarqubeGeneratorSchema
+  options: NxSonarqubeGeneratorSchema,
 ): void {
   const projectConfiguration = readProjectConfiguration(tree, options.name);
 
   if (projectConfiguration.targets.sonar) {
     throw new Error(
-      `Project "${options.name}" already has a "sonar" target configured`
+      `Project "${options.name}" already has a "sonar" target configured`,
     );
   } else {
     projectConfiguration.targets.sonar = {

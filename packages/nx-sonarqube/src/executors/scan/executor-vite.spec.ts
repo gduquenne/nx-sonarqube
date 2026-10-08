@@ -7,8 +7,8 @@ import {
 } from '@nx/devkit';
 import * as sonarQubeScanner from 'sonarqube-scanner';
 import { determinePaths } from './utils/utils';
-import { ScanExecutorSchema } from "./schema";
-import * as fs from "fs";
+import { ScanExecutorSchema } from './schema';
+import * as fs from 'fs';
 
 let projectGraph: ProjectGraph;
 let context: ExecutorContext;
@@ -33,7 +33,8 @@ jest.mock('sonarqube-scanner');
 
 describe('Scan Executor', (): void => {
   let viteConfig: string;
-  let commonOptions: Partial<ScanExecutorSchema> & Pick<ScanExecutorSchema, 'hostUrl' | 'projectKey'>;
+  let commonOptions: Partial<ScanExecutorSchema> &
+    Pick<ScanExecutorSchema, 'hostUrl' | 'projectKey'>;
 
   beforeEach((): void => {
     (readJsonFile as jest.MockedFunction<typeof readJsonFile>).mockReset();
@@ -150,7 +151,7 @@ describe('Scan Executor', (): void => {
               test: {
                 executor: '@nx/vite:test',
                 options: {
-                  reportsDirectory: "../../coverage/apps/app1"
+                  reportsDirectory: '../../coverage/apps/app1',
                 },
               },
             },
@@ -162,7 +163,7 @@ describe('Scan Executor', (): void => {
               test: {
                 executor: '@nx/vite:test',
                 options: {
-                  reportsDirectory: "../../coverage/apps/app1"
+                  reportsDirectory: '../../coverage/apps/app1',
                 },
               },
             },
@@ -174,7 +175,7 @@ describe('Scan Executor', (): void => {
               test: {
                 executor: '@nx/vite:test',
                 options: {
-                  reportsDirectory: "../../coverage/apps/app1"
+                  reportsDirectory: '../../coverage/apps/app1',
                 },
               },
             },
@@ -186,7 +187,7 @@ describe('Scan Executor', (): void => {
               test: {
                 executor: '@nx/vite:test',
                 options: {
-                  reportsDirectory: "../../coverage/apps/app1"
+                  reportsDirectory: '../../coverage/apps/app1',
                 },
               },
             },
@@ -218,7 +219,7 @@ describe('Scan Executor', (): void => {
   });
 
   it('should scan project and dependencies & skip projects with no test target', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true)
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig);
     jest.spyOn(sonarQubeScanner, 'scan').mockResolvedValue();
 
@@ -230,37 +231,38 @@ describe('Scan Executor', (): void => {
         ...commonOptions,
         qualityGate: true,
       },
-      newContext
+      newContext,
     );
     expect(output.success).toBe(true);
   });
 
   it('should scan project and dependencies & skip projects with no vitest config', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true)
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig);
     jest.spyOn(sonarQubeScanner, 'scan').mockResolvedValue();
 
     const newContext = { ...context };
-    newContext.projectsConfigurations.projects['app1'].targets.test.options = {};
+    newContext.projectsConfigurations.projects['app1'].targets.test.options =
+      {};
 
     const output = await sonarScanExecutor(
       {
         ...commonOptions,
         qualityGate: true,
       },
-      newContext
+      newContext,
     );
     expect(output.success).toBe(true);
   });
 
   it('should scan project and dependencies & skip projects with no reportsDirectory', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true)
-    jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig)
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig);
     jest.spyOn(sonarQubeScanner, 'scan').mockResolvedValue();
 
     const newContext = { ...context };
     newContext.projectsConfigurations.projects['app1'].targets.test.options = {
-      coverage: true
+      coverage: true,
     };
 
     const output = await sonarScanExecutor(
@@ -268,18 +270,18 @@ describe('Scan Executor', (): void => {
         ...commonOptions,
         qualityGate: true,
       },
-      context
+      context,
     );
     expect(output.success).toBe(true);
   });
 
   it('should scan project and dependencies & skip projects with no vite config file', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValue(false)
+    jest.spyOn(fs, 'existsSync').mockReturnValue(false);
     jest.spyOn(sonarQubeScanner, 'scan').mockResolvedValue();
 
     const newContext = { ...context };
     newContext.projectsConfigurations.projects['app1'].targets.test.options = {
-      coverage: true
+      coverage: true,
     };
 
     const output = await sonarScanExecutor(
@@ -287,13 +289,13 @@ describe('Scan Executor', (): void => {
         ...commonOptions,
         qualityGate: true,
       },
-      context
+      context,
     );
     expect(output.success).toBe(true);
   });
 
   it('should scan project and dependencies & skip projects with a vite config file without a reportsDirectory', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true)
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     jest.spyOn(fs, 'readFileSync').mockReturnValue(`
       import { defineConfig, UserConfig } from 'vite';
 
@@ -304,12 +306,12 @@ describe('Scan Executor', (): void => {
           },
         }),
       );
-      `)
+      `);
     jest.spyOn(sonarQubeScanner, 'scan').mockResolvedValue();
 
     const newContext = { ...context };
     newContext.projectsConfigurations.projects['app1'].targets.test.options = {
-      coverage: true
+      coverage: true,
     };
 
     const output = await sonarScanExecutor(
@@ -317,30 +319,24 @@ describe('Scan Executor', (): void => {
         ...commonOptions,
         qualityGate: true,
       },
-      context
+      context,
     );
     expect(output.success).toBe(true);
   });
 
   it('should error on sonar scanner issue', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true)
-    jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig)
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig);
     jest.spyOn(sonarQubeScanner, 'scan').mockImplementation(() => {
       throw new Error();
     });
 
-    const output = await sonarScanExecutor(
-      commonOptions,
-      context
-    );
+    const output = await sonarScanExecutor(commonOptions, context);
     expect(output.success).toBe(false);
   });
 
   it('should return vitest config coverage directory path', async () => {
-    const paths = await determinePaths(
-      commonOptions,
-      context
-    );
+    const paths = await determinePaths(commonOptions, context);
     expect(paths.lcovPaths.includes('coverage/apps/app1/lcov.info')).toBe(true);
   });
 
@@ -348,17 +344,14 @@ describe('Scan Executor', (): void => {
     const testContext = JSON.parse(JSON.stringify(context)) as typeof context;
     testContext.projectsConfigurations.projects.app1.targets.test.options.reportsDirectory =
       'coverage/test/apps/app1';
-    const paths = await determinePaths(
-      commonOptions,
-      testContext
-    );
+    const paths = await determinePaths(commonOptions, testContext);
     expect(paths.lcovPaths.includes('coverage/test/apps/app1/lcov.info')).toBe(
-      true
+      true,
     );
   });
 
   it('should return project test config coverage directory path (from the option "configFile")', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true)
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     jest.spyOn(fs, 'readFileSync').mockReturnValue(`
       import { defineConfig, UserConfig } from 'vite';
 
@@ -371,63 +364,81 @@ describe('Scan Executor', (): void => {
           },
         }),
       );
-      `)
+      `);
     const testContext = JSON.parse(JSON.stringify(context)) as typeof context;
     testContext.projectsConfigurations.projects.app1.targets.test.options = {
-      configFile: '../../vite-custom-coverage/apps/app1'
+      configFile: '../../vite-custom-coverage/apps/app1',
     };
 
-    const paths = await determinePaths(
-      commonOptions,
-      testContext
-    );
-    expect(paths.lcovPaths.includes('vite-custom-coverage/apps/app1/lcov.info')).toBe(
-      true
-    );
+    const paths = await determinePaths(commonOptions, testContext);
+    expect(
+      paths.lcovPaths.includes('vite-custom-coverage/apps/app1/lcov.info'),
+    ).toBe(true);
   });
 
   it('should return project test config coverage directory path (from the project vite config file)', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValue(true)
-    jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig)
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig);
     const testContext = JSON.parse(JSON.stringify(context)) as typeof context;
-    testContext.projectsConfigurations.projects.app1.targets.test.options = undefined;
+    testContext.projectsConfigurations.projects.app1.targets.test.options =
+      undefined;
 
-    const paths = await determinePaths(
-      commonOptions,
-      testContext
-    );
+    const paths = await determinePaths(commonOptions, testContext);
     expect(paths.lcovPaths.includes('vite-coverage/apps/app1/lcov.info')).toBe(
-      true
+      true,
     );
   });
 
   it('should return project test config coverage directory path (from the root vite.config.ts file)', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValueOnce(false).mockReturnValue(true)
-    jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig)
+    jest
+      .spyOn(fs, 'existsSync')
+      .mockReturnValueOnce(false)
+      .mockReturnValue(true);
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig);
     const testContext = JSON.parse(JSON.stringify(context)) as typeof context;
     testContext.projectsConfigurations.projects.app1.targets.test.options = {};
 
-    const paths = await determinePaths(
-      commonOptions,
-      testContext
-    );
+    const paths = await determinePaths(commonOptions, testContext);
     expect(paths.lcovPaths.includes('vite-coverage/apps/app1/lcov.info')).toBe(
-      true
+      true,
     );
   });
 
   it('should return project test config coverage directory path (from the root vite.config.js file)', async () => {
-    jest.spyOn(fs, 'existsSync').mockReturnValueOnce(false).mockReturnValue(true)
-    jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig)
+    jest
+      .spyOn(fs, 'existsSync')
+      .mockReturnValueOnce(false)
+      .mockReturnValue(true);
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(viteConfig);
     const testContext = JSON.parse(JSON.stringify(context)) as typeof context;
     testContext.projectsConfigurations.projects.app1.targets.test.options = {};
 
-    const paths = await determinePaths(
-      commonOptions,
-      testContext
-    );
+    const paths = await determinePaths(commonOptions, testContext);
     expect(paths.lcovPaths.includes('vite-coverage/apps/app1/lcov.info')).toBe(
-      true
+      true,
     );
+  });
+
+  it('should return coverage directory path from a vitest.config file with the @nx/vitest executor', async () => {
+    jest
+      .spyOn(fs, 'existsSync')
+      .mockImplementation((path) =>
+        String(path).endsWith('apps/app1/vitest.config.mts'),
+      );
+    const readFileSpy = jest
+      .spyOn(fs, 'readFileSync')
+      .mockReturnValue(viteConfig);
+    const testContext = JSON.parse(JSON.stringify(context)) as typeof context;
+    testContext.projectsConfigurations.projects.app1.targets.test = {
+      executor: '@nx/vitest:test',
+    };
+
+    const paths = await determinePaths(commonOptions, testContext);
+
+    expect(readFileSpy).toHaveBeenCalledWith(
+      'apps/app1/vitest.config.mts',
+      'utf-8',
+    );
+    expect(paths.lcovPaths).toBe('vite-coverage/apps/app1/lcov.info');
   });
 });
