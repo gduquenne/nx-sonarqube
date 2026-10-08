@@ -54,3 +54,5 @@ apps/docs-site/src/content/docs/reference/Generators
 .nx/polygraph
 .claude/worktrees
 .claude/settings.local.json
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
