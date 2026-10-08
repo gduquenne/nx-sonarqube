@@ -58,3 +58,4 @@ apps/docs-site/src/content/docs/reference/Generators
 .github/instructions/nx.instructions.md
 
 .nx/self-healing
+.nx/migrate-runs

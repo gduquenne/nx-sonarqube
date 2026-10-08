@@ -26,7 +26,7 @@
       "inputs": [
         "default",
         "^default",
-        "{workspaceRoot}/.eslintrc.json",
+        "{workspaceRoot}/eslint.config.mjs",
         "{workspaceRoot}/tools/eslint-rules/**/*"
       ],
       "cache": true
@@ -42,7 +42,7 @@
     "production": [
       "default",
       "{workspaceRoot}/LICENSE",
-      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/eslint.config.mjs",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/jest.config.[jt]s",
@@ -52,5 +52,6 @@
   "nxCloudAccessToken": "MWM4ZWZiNDgtOGYwMi00ZDI3LTllMDUtYTNkYTExMmU3MDY2fHJlYWQ=",
   "parallel": 3,
   "defaultBase": "origin/main",
-  "useInferencePlugins": false
+  "useInferencePlugins": false,
+  "analytics": true
 }
