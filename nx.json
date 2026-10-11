@@ -23,12 +23,16 @@
       }
     },
     "@nx/eslint:lint": {
-      "inputs": ["default", "{workspaceRoot}/.eslintrc.json"],
+      "inputs": [
+        "default",
+        "^default",
+        "{workspaceRoot}/eslint.config.mjs",
+        "{workspaceRoot}/tools/eslint-rules/**/*"
+      ],
       "cache": true
     }
   },
   "workspaceLayout": {
-    "appsDir": "e2e",
     "libsDir": "packages"
   },
   "namedInputs": {
@@ -37,7 +41,7 @@
     "production": [
       "default",
       "{workspaceRoot}/LICENSE",
-      "!{projectRoot}/.eslintrc.json",
+      "!{projectRoot}/eslint.config.mjs",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/tsconfig.spec.json",
       "!{projectRoot}/jest.config.[jt]s",
@@ -48,5 +52,5 @@
   "parallel": 3,
   "defaultBase": "origin/main",
   "useInferencePlugins": false,
-  "useLegacyCache": true
+  "analytics": true
 }

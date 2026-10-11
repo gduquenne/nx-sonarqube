@@ -1,21 +1,26 @@
 {
-  "name": "@koliveira15/nx-sonarqube",
+  "name": "@gduquenne/nx-sonarqube",
   "license": "MIT",
   "description": "A Nx plugin that scans projects using SonarQube / SonarCloud.",
+  "engines": {
+    "node": "24.21.0",
+    "pnpm": "12.2.1"
+  },
+  "packageManager": "pnpm@12.2.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/koliveira15/nx-sonarqube.git",
+    "url": "https://github.com/gduquenne/nx-sonarqube.git",
     "directory": "packages/nx-sonarqube"
   },
-  "version": "4.0.1",
+  "version": "5.0.0",
   "main": "src/index.js",
   "generators": "./generators.json",
   "executors": "./executors.json",
   "peerDependencies": {
-    "@nx/devkit": ">= 16 < 21",
-    "@phenomnomnominal/tsquery": ">= 6.1.3",
-    "sonarqube-scanner": ">= 4.2.5 < 5",
-    "nx": ">= 16 < 21",
+    "@nx/devkit": ">= 20 < 24",
+    "@phenomnomnominal/tsquery": ">= 6.1.3 < 7",
+    "sonarqube-scanner": ">= 5 < 6",
+    "nx": ">= 20 < 24",
     "tslib": ">= 2.3.0 < 3"
   }
 }

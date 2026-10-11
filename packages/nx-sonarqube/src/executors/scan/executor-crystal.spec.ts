@@ -1,12 +1,12 @@
-import sonarScanExecutor from './executor';
 import {
   DependencyType,
   ExecutorContext,
   ProjectGraph,
   readJsonFile,
 } from '@nx/devkit';
-import * as sonarQubeScanner from 'sonarqube-scanner';
 import * as fs from 'fs';
+import * as sonarQubeScanner from 'sonarqube-scanner';
+import sonarScanExecutor from './executor';
 
 let projectGraph: ProjectGraph;
 let context: ExecutorContext;
@@ -235,8 +235,43 @@ describe('Scan Executor - Crystal', (): void => {
         qualityGate: true,
         skipImplicitDeps: true,
       },
-      context
+      context,
     );
     expect(output.success).toBe(true);
+  });
+
+  it('should skip projects with an unsupported or missing test command', async () => {
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    jest.spyOn(fs, 'readFileSync').mockReturnValue(jestConfig);
+    jest.spyOn(sonarQubeScanner, 'scan').mockResolvedValue();
+    projectGraph.nodes.lib1.data.targets.test.options = {
+      command: 'mocha',
+    };
+    projectGraph.nodes.lib2.data.targets.test = {
+      executor: 'nx:run-commands',
+    };
+    projectGraph.nodes.lib3.data.targets.test = {};
+    projectGraph.dependencies.app1.push({
+      type: DependencyType.static,
+      source: 'app1',
+      target: 'npm:lodash',
+    });
+
+    const output = await sonarScanExecutor(
+      {
+        hostUrl: 'url',
+        projectKey: 'key',
+        qualityGate: true,
+      },
+      context,
+    );
+    expect(output.success).toBe(true);
+    expect(sonarQubeScanner.scan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          'sonar.javascript.lcov.reportPaths': 'coverage/apps/app1/lcov.info',
+        }),
+      }),
+    );
   });
 });

@@ -1,4 +1,3 @@
-import { ScanExecutorSchema } from '../schema';
 import {
   createProjectGraphAsync,
   DependencyType,
@@ -8,11 +7,12 @@ import {
   ProjectGraph,
   readCachedProjectGraph,
   readJsonFile,
+  TargetConfiguration,
 } from '@nx/devkit';
 import { ast, query, ScriptKind } from '@phenomnomnominal/tsquery';
-import * as sonarQubeScanner from 'sonarqube-scanner';
-import { TargetConfiguration } from 'nx/src/config/workspace-json-project-json';
 import { existsSync, readFileSync } from 'fs';
+import * as sonarQubeScanner from 'sonarqube-scanner';
+import { ScanExecutorSchema } from '../schema';
 
 interface OptionMarshaller {
   Options(): { [option: string]: string };
@@ -54,15 +54,16 @@ class EnvMarshaller implements OptionMarshaller {
 
 function getTestRunner(project: WorkspaceLibrary): TestRunner {
   let testRunner: TestRunner;
-  const executor = project.testTarget.executor;
+  const executor = project.testTarget.executor ?? '';
 
+  // matches @nx/vite:test and @nx/vitest:test
   if (executor.includes('vite')) {
     testRunner = TestRunner.Vitest;
   } else if (executor.includes('jest')) {
     testRunner = TestRunner.Jest;
   } else if (executor.includes('run-commands')) {
-    // project crystal
-    const command = project.testTarget.options.command;
+    // inferred targets (project crystal)
+    const command: string = project.testTarget.options?.command ?? '';
     if (command.includes('vitest')) {
       testRunner = TestRunner.Vitest;
     } else if (command.includes('jest')) {
@@ -75,7 +76,7 @@ function getTestRunner(project: WorkspaceLibrary): TestRunner {
 type CoverageDirectoryName = 'coverageDirectory' | 'reportsDirectory';
 
 function getCoverageDirectoryName(
-  testRunner: TestRunner
+  testRunner: TestRunner,
 ): CoverageDirectoryName {
   let coverageDirectory: CoverageDirectoryName;
   if (testRunner === TestRunner.Vitest) {
@@ -88,12 +89,13 @@ function getCoverageDirectoryName(
 
 export async function determinePaths(
   options: ScanExecutorSchema,
-  context: ExecutorContext
+  context: ExecutorContext,
 ): Promise<{ lcovPaths: string; sources: string }> {
   const sources: string[] = [];
   const lcovPaths: string[] = [];
   const deps = await getDependentPackagesForProject(context.projectName);
-  const projectConfiguration = context.projectsConfigurations.projects[context.projectName];
+  const projectConfiguration =
+    context.projectsConfigurations.projects[context.projectName];
   deps.workspaceLibraries.push({
     name: context.projectName,
     type: DependencyType.static,
@@ -104,7 +106,9 @@ export async function determinePaths(
 
   deps.workspaceLibraries
     .filter((project) =>
-      options.skipImplicitDeps ? project.type !== DependencyType.implicit : true
+      options.skipImplicitDeps
+        ? project.type !== DependencyType.implicit
+        : true,
     )
     .forEach((dep) => {
       if (dep.sourceRoot) {
@@ -124,19 +128,19 @@ export async function determinePaths(
               dep.testTarget.options[coverageDirectoryName]
                 .replace(new RegExp(/'/g), '')
                 .replace(/^(?:\.\.\/)+/, ''),
-              'lcov.info'
-            )
+              'lcov.info',
+            ),
           );
         } else if (testRunner === TestRunner.Jest) {
           const jestConfigPath: string = joinPathFragments(
             context.root,
             dep.projectRoot,
-            'jest.config.ts'
+            'jest.config.ts',
           );
 
           if (!existsSync(jestConfigPath)) {
             logger.warn(
-              `Skipping ${dep.name} as the jest config file cannot be found`
+              `Skipping ${dep.name} as the jest config file cannot be found`,
             );
             return;
           }
@@ -155,35 +159,38 @@ export async function determinePaths(
                   .getText()
                   .replace(new RegExp(/'/g), '')
                   .replace(/^(?:\.\.\/)+/, ''),
-                'lcov.info'
-              )
+                'lcov.info',
+              ),
             );
           } else {
             logger.warn(
-              `Skipping ${dep.name} as it does not have a coverageDirectory in ${jestConfigPath}`
+              `Skipping ${dep.name} as it does not have a coverageDirectory in ${jestConfigPath}`,
             );
           }
-        } else if (TestRunner.Vitest) {
+        } else if (testRunner === TestRunner.Vitest) {
           const viteConfigExtensions = ['.ts', '.js', '.mts', '.mjs'];
-          const viteConfigPaths = viteConfigExtensions.map((ext) =>
-            joinPathFragments(
-              context.root,
-              dep.projectRoot,
-              `vite.config${ext}`
-            )
+          const viteConfigPaths = ['vitest.config', 'vite.config'].flatMap(
+            (name) =>
+              viteConfigExtensions.map((ext) =>
+                joinPathFragments(
+                  context.root,
+                  dep.projectRoot,
+                  `${name}${ext}`,
+                ),
+              ),
           );
 
           const viteConfigPath = viteConfigPaths.find((path) =>
-            existsSync(path)
+            existsSync(path),
           );
 
           if (!viteConfigPath) {
             logger.warn(
               `Skipping ${
                 dep.name
-              } as no vite config file can be found. Checked extensions: ${viteConfigExtensions.join(
-                ', '
-              )}`
+              } as no vitest/vite config file can be found. Checked extensions: ${viteConfigExtensions.join(
+                ', ',
+              )}`,
             );
             return;
           }
@@ -193,7 +200,7 @@ export async function determinePaths(
           const nodes = query(
             astOutput as unknown as string,
             'PropertyAssignment:has(Identifier[name="reportsDirectory"]) StringLiteral',
-            ScriptKind.TS
+            ScriptKind.TS,
           );
 
           if (nodes.length) {
@@ -203,14 +210,18 @@ export async function determinePaths(
                   .getText()
                   .replace(new RegExp(/'/g), '')
                   .replace(/^(?:\.\.\/)+/, ''),
-                'lcov.info'
-              )
+                'lcov.info',
+              ),
             );
           } else {
             logger.warn(
-              `Skipping ${dep.name} as it does not have a reportsDirectory in ${viteConfigPath}`
+              `Skipping ${dep.name} as it does not have a reportsDirectory in ${viteConfigPath}`,
             );
           }
+        } else {
+          logger.warn(
+            `Skipping ${dep.name} as its test runner is not supported (Jest or Vitest)`,
+          );
         }
       } else {
         logger.warn(`Skipping ${dep.name} as it does not have a test target`);
@@ -225,7 +236,7 @@ export async function determinePaths(
 
 export async function scanner(
   options: ScanExecutorSchema,
-  context: ExecutorContext
+  context: ExecutorContext,
 ): Promise<{ success: void }> {
   const paths = await determinePaths(options, context);
 
@@ -238,7 +249,7 @@ export async function scanner(
     context,
     options,
     paths.sources,
-    paths.lcovPaths
+    paths.lcovPaths,
   );
   const success = await sonarQubeScanner.scan({
     serverUrl: options.hostUrl,
@@ -253,7 +264,7 @@ export function getScannerOptions(
   context: ExecutorContext,
   options: ScanExecutorSchema,
   sources: string,
-  lcovPaths: string
+  lcovPaths: string,
 ): { [option: string]: string } {
   let scannerOptions: { [option: string]: string } = {
     'sonar.exclusions': options.exclusions,
@@ -281,7 +292,7 @@ export function getScannerOptions(
   scannerOptions = combineOptions(
     new ExtraMarshaller(options.extra),
     new EnvMarshaller(),
-    scannerOptions
+    scannerOptions,
   );
   return scannerOptions;
 }
@@ -305,7 +316,7 @@ async function getDependentPackagesForProject(name: string): Promise<{
 function combineOptions(
   extraOptions: ExtraMarshaller,
   envOptions: EnvMarshaller,
-  scannerOptions: { [option: string]: string }
+  scannerOptions: { [option: string]: string },
 ): { [option: string]: string } {
   return {
     ...extraOptions.Options(),
@@ -316,14 +327,16 @@ function combineOptions(
 
 export function projectPackageVersion(
   context: ExecutorContext,
-  options: ScanExecutorSchema
+  options: ScanExecutorSchema,
 ): string {
   const projectName = context.projectName;
   let version = options.projectVersion;
   if (version) {
     return version;
   }
-  version = getPackageJsonVersion(context.projectsConfigurations.projects[projectName].root);
+  version = getPackageJsonVersion(
+    context.projectsConfigurations.projects[projectName].root,
+  );
   if (version) {
     return version;
   }
@@ -339,11 +352,11 @@ function getPackageJsonVersion(dir = ''): string {
       version = '';
     }
     logger.debug(
-      `resolved package json from ${dir}, package version:${version}`
+      `resolved package json from ${dir}, package version:${version}`,
     );
   } catch (e) {
     logger.debug(
-      `Unable to open file ${joinPathFragments(dir, 'package.json')}`
+      `Unable to open file ${joinPathFragments(dir, 'package.json')}`,
     );
   }
   return version;
@@ -354,7 +367,7 @@ function collectDependencies(
   dependencies = {
     workspaceLibraries: new Map<string, WorkspaceLibrary>(),
   },
-  seen: Set<string> = new Set()
+  seen: Set<string> = new Set(),
 ): {
   workspaceLibraries: Map<string, WorkspaceLibrary>;
 } {

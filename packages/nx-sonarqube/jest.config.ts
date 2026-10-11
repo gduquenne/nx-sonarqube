@@ -1,5 +1,4 @@
-/* eslint-disable */
-export default {
+module.exports = {
   displayName: 'nx-sonarqube',
   preset: '../../jest.preset.js',
   globals: {},
