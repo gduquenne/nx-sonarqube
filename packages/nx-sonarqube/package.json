@@ -2,6 +2,11 @@
   "name": "@gduquenne/nx-sonarqube",
   "license": "MIT",
   "description": "A Nx plugin that scans projects using SonarQube / SonarCloud.",
+  "engines": {
+    "node": "24.21.0",
+    "pnpm": "12.2.1"
+  },
+  "packageManager": "pnpm@12.2.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/gduquenne/nx-sonarqube.git",
