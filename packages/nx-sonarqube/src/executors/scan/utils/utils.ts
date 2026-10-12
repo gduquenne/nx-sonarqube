@@ -73,19 +73,12 @@ function getTestRunner(project: WorkspaceLibrary): TestRunner {
   return testRunner;
 }
 
-type CoverageDirectoryName = 'coverageDirectory' | 'reportsDirectory';
+type CoverageDirectoryName = 'coverageDirectory' | 'coverage.reportsDirectory';
 
-function getCoverageDirectoryName(
-  testRunner: TestRunner,
-): CoverageDirectoryName {
-  let coverageDirectory: CoverageDirectoryName;
-  if (testRunner === TestRunner.Vitest) {
-    coverageDirectory = 'reportsDirectory';
-  } else if (testRunner === TestRunner.Jest) {
-    coverageDirectory = 'coverageDirectory';
-  }
-  return coverageDirectory;
-}
+const CoverageDirectoryNameMapper: Record<TestRunner, CoverageDirectoryName> = {
+  [TestRunner.Vitest]: 'coverage.reportsDirectory',
+  [TestRunner.Jest]: 'coverageDirectory',
+};
 
 export async function determinePaths(
   options: ScanExecutorSchema,
@@ -111,28 +104,15 @@ export async function determinePaths(
         : true,
     )
     .forEach((dep) => {
-      if (dep.sourceRoot) {
-        sources.push(dep.sourceRoot);
-      } else {
-        sources.push(dep.projectRoot);
-      }
+      sources.push(dep.sourceRoot ?? dep.projectRoot);
 
       if (dep.testTarget) {
         const testRunner: TestRunner = getTestRunner(dep);
-        const coverageDirectoryName: CoverageDirectoryName =
-          getCoverageDirectoryName(testRunner);
 
-        // @nx/vitest generates the dotted "coverage.reportsDirectory" option key
-        const configuredDirectory: string | undefined =
-          dep.testTarget.options?.[coverageDirectoryName] ??
-          (testRunner === TestRunner.Vitest
-            ? dep.testTarget.options?.['coverage.reportsDirectory']
-            : undefined);
-
-        if (configuredDirectory) {
+        if (dep.testTarget.options?.[CoverageDirectoryNameMapper[testRunner]]) {
           lcovPaths.push(
             joinPathFragments(
-              configuredDirectory
+              dep.testTarget.options[CoverageDirectoryNameMapper[testRunner]]
                 .replace(new RegExp(/'/g), '')
                 .replace(/^(?:\.\.\/)+/, ''),
               'lcov.info',
