@@ -151,7 +151,7 @@ describe('Scan Executor', (): void => {
               test: {
                 executor: '@nx/vite:test',
                 options: {
-                  reportsDirectory: '../../coverage/apps/app1',
+                  'coverage.reportsDirectory': '../../coverage/apps/app1',
                 },
               },
             },
@@ -163,7 +163,7 @@ describe('Scan Executor', (): void => {
               test: {
                 executor: '@nx/vite:test',
                 options: {
-                  reportsDirectory: '../../coverage/apps/app1',
+                  'coverage.reportsDirectory': '../../coverage/apps/app1',
                 },
               },
             },
@@ -175,7 +175,7 @@ describe('Scan Executor', (): void => {
               test: {
                 executor: '@nx/vite:test',
                 options: {
-                  reportsDirectory: '../../coverage/apps/app1',
+                  'coverage.reportsDirectory': '../../coverage/apps/app1',
                 },
               },
             },
@@ -187,7 +187,7 @@ describe('Scan Executor', (): void => {
               test: {
                 executor: '@nx/vite:test',
                 options: {
-                  reportsDirectory: '../../coverage/apps/app1',
+                  'coverage.reportsDirectory': '../../coverage/apps/app1',
                 },
               },
             },
@@ -342,22 +342,11 @@ describe('Scan Executor', (): void => {
 
   it('should return project test config coverage directory path (from the options)', async () => {
     const testContext = JSON.parse(JSON.stringify(context)) as typeof context;
-    testContext.projectsConfigurations.projects.app1.targets.test.options.reportsDirectory =
-      'coverage/test/apps/app1';
+    testContext.projectsConfigurations.projects.app1.targets.test.options[
+      'coverage.reportsDirectory'
+    ] = 'coverage/test/apps/app1';
     const paths = await determinePaths(commonOptions, testContext);
     expect(paths.lcovPaths.includes('coverage/test/apps/app1/lcov.info')).toBe(
-      true,
-    );
-  });
-
-  it('should return project test config coverage directory path (from the "coverage.reportsDirectory" option)', async () => {
-    const testContext = JSON.parse(JSON.stringify(context)) as typeof context;
-    const testOptions =
-      testContext.projectsConfigurations.projects.app1.targets.test.options;
-    delete testOptions.reportsDirectory;
-    testOptions['coverage.reportsDirectory'] = '../../coverage/dotted/app1';
-    const paths = await determinePaths(commonOptions, testContext);
-    expect(paths.lcovPaths.includes('coverage/dotted/app1/lcov.info')).toBe(
       true,
     );
   });
