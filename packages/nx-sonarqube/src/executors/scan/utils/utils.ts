@@ -122,10 +122,17 @@ export async function determinePaths(
         const coverageDirectoryName: CoverageDirectoryName =
           getCoverageDirectoryName(testRunner);
 
-        if (dep.testTarget.options?.[coverageDirectoryName]) {
+        // @nx/vitest generates the dotted "coverage.reportsDirectory" option key
+        const configuredDirectory: string | undefined =
+          dep.testTarget.options?.[coverageDirectoryName] ??
+          (testRunner === TestRunner.Vitest
+            ? dep.testTarget.options?.['coverage.reportsDirectory']
+            : undefined);
+
+        if (configuredDirectory) {
           lcovPaths.push(
             joinPathFragments(
-              dep.testTarget.options[coverageDirectoryName]
+              configuredDirectory
                 .replace(new RegExp(/'/g), '')
                 .replace(/^(?:\.\.\/)+/, ''),
               'lcov.info',

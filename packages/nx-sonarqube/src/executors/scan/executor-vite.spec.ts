@@ -350,6 +350,18 @@ describe('Scan Executor', (): void => {
     );
   });
 
+  it('should return project test config coverage directory path (from the "coverage.reportsDirectory" option)', async () => {
+    const testContext = JSON.parse(JSON.stringify(context)) as typeof context;
+    const testOptions =
+      testContext.projectsConfigurations.projects.app1.targets.test.options;
+    delete testOptions.reportsDirectory;
+    testOptions['coverage.reportsDirectory'] = '../../coverage/dotted/app1';
+    const paths = await determinePaths(commonOptions, testContext);
+    expect(paths.lcovPaths.includes('coverage/dotted/app1/lcov.info')).toBe(
+      true,
+    );
+  });
+
   it('should return project test config coverage directory path (from the option "configFile")', async () => {
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     jest.spyOn(fs, 'readFileSync').mockReturnValue(`
